@@ -1,0 +1,37 @@
+{% extends "app_layout.html" %}
+
+{% block page_title %}Edit Match{% endblock %}
+
+{% block content %}
+<div class="card glass" style="max-width: 600px; margin: 0 auto;">
+    <h2 style="margin-bottom: 24px;">Edit Match #{{ match.matchID }}</h2>
+    
+    <form method="POST" action="{{ url_for('edit_match_route', match_id=match.matchID) }}">
+        <div class="form-group">
+            <label class="form-label">Komi</label>
+            <input type="number" step="0.5" class="form-control" name="komi" value="{{ match.komi }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Handicap</label>
+            <input type="number" min="0" max="9" class="form-control" name="handicap" value="{{ match.handicap }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Rule</label>
+            <select class="form-control" name="rule" required>
+                <option value="japanese" {% if match.rule == 'japanese' %}selected{% endif %}>Japanese</option>
+                <option value="chinese" {% if match.rule == 'chinese' %}selected{% endif %}>Chinese</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Evidence Link URL</label>
+            <input type="url" class="form-control" name="evidenceLink" value="{{ match.evidenceLink if match.evidenceLink else '' }}">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+        <a href="{{ url_for('index') }}" class="btn" style="display: block; width: 100%; text-align: center; margin-top: 12px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; padding: 10px 0; border-radius: 8px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

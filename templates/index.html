@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="card glass">
+        <h3>Database Setup</h3>
+        <p>Initialize the GoRecorder database by running the creation and insertion SQL scripts.</p>
+        <button id="btn-setup" class="btn btn-primary mt-4">Initialize Database</button>
+        <div id="setup-status" class="status-msg hidden mt-2"></div>
+    </div>
+    
+    <div class="card glass">
+        <h3>System Status</h3>
+        <ul class="status-list mt-4">
+            <li>
+                <span class="status-label">MySQL Connection</span>
+                <span class="status-value success">Active</span>
+            </li>
+            <li>
+                <span class="status-label">Environment</span>
+                <span class="status-value">Local</span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

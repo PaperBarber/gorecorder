@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block layout %}
+<div class="auth-container" style="display: flex; height: 100vh; align-items: center; justify-content: center; background-color: var(--bg-main);">
+    <div class="card glass" style="width: 100%; max-width: 500px; padding: 40px; max-height: 90vh; overflow-y: auto;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div class="brand-icon" style="margin: 0 auto 16px auto; width: 48px; height: 48px;"></div>
+            <h2>Create an Account</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">Join GoRecorder</p>
+        </div>
+        
+        <form method="POST" action="/register">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Country</label>
+                <input type="text" name="country" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Go Rank (e.g. 5k, 1d, 9p)</label>
+                <input type="text" name="rank" class="form-control" pattern="^[1-9][0-9]?[kdp]$" required title="Rank must be in format like 5k, 1d, 9p">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Club (Optional)</label>
+                <select name="club_id" class="form-control">
+                    <option value="none">-- No Club --</option>
+                    {% for club in clubs %}
+                    <option value="{{ club.clubID }}">{{ club.clubName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
+                <input type="checkbox" name="is_admin" id="is_admin" onchange="document.getElementById('admin_key_group').style.display = this.checked ? 'block' : 'none';">
+                <label for="is_admin" class="form-label" style="margin-bottom: 0;">Register as Admin</label>
+            </div>
+            <div class="form-group" id="admin_key_group" style="display: none; margin-top: 16px;">
+                <label class="form-label">Admin Registration Key</label>
+                <input type="password" name="admin_key" class="form-control" placeholder="Enter secret key">
+            </div>
+            <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 16px;">Register</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 24px;">
+            <span style="color: var(--text-muted);">Already have an account?</span> 
+            <a href="/login" style="color: var(--primary); text-decoration: none;">Log In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block layout %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon"></div>
+            <h2>GoRecorder</h2>
+        </div>
+        <nav class="nav-menu">
+            <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">Dashboard</a>
+            <a href="/record_match" class="nav-item {% if request.path == '/record_match' %}active{% endif %}">Record Match</a>
+            <a href="/tournaments" class="nav-item {% if request.path == '/tournaments' %}active{% endif %}">Tournaments</a>
+        </nav>
+        <div style="margin-top: auto; padding: 24px 16px;">
+            <a href="/logout" class="nav-item" style="color: var(--error);">Log Out</a>
+        </div>
+    </aside>
+    
+    <main class="main-content">
+        <header class="topbar">
+            <h1>{% block page_title %}{% endblock %}</h1>
+            <div class="user-profile">
+                <span class="user-name">{{ user_name }}</span>
+                <div class="avatar">{{ user_name[0] | upper if user_name else '?' }}</div>
+            </div>
+        </header>
+        
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% endblock %}

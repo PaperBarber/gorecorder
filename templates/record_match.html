@@ -1,0 +1,134 @@
+{% extends "app_layout.html" %}
+
+{% block page_title %}Record Match{% endblock %}
+
+{% block content %}
+<div class="split-view">
+    <div class="card glass">
+        <h3>New Match Details</h3>
+        <p class="mt-2" style="color: var(--text-muted); font-size: 0.9rem;">Record a completed game to update your statistics.</p>
+        
+        <form method="POST" action="/record_match" class="mt-4" enctype="multipart/form-data">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">You Played As</label>
+                    <select name="played_as" class="form-control" required>
+                        <option value="black">Black</option>
+                        <option value="white">White</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Opponent</label>
+                    <select name="opponent_id" id="opponent_id" class="form-control" required onchange="fetchSharedTournaments(this.value, {{ user_id }})">
+                        <option value="">-- Select Opponent --</option>
+                        {% for p in players %}
+                        <option value="{{ p.userID }}">{{ p.name }} ({{ p.rank }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group mt-2">
+                <label class="form-label">Tournament (Optional)</label>
+                <select name="tournament_id" id="tournament_id" class="form-control">
+                    <option value="none">-- Select an opponent first --</option>
+                </select>
+                <small style="color: var(--text-muted);">Only tournaments that BOTH you and your opponent have joined will appear here.</small>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Board Size</label>
+                    <select name="board_size" class="form-control" required>
+                        <option value="19">19x19</option>
+                        <option value="13">13x13</option>
+                        <option value="9">9x9</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Rule</label>
+                    <select name="rule" class="form-control" required>
+                        <option value="japanese">Japanese</option>
+                        <option value="chinese">Chinese</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Komi</label>
+                    <input type="number" step="0.5" name="komi" class="form-control" value="6.5" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Handicap</label>
+                    <input type="number" min="0" max="9" name="handicap" class="form-control" value="0" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Match Result</label>
+                <select name="result" class="form-control" required>
+                    <option value="win">Win</option>
+                    <option value="loss">Loss</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Evidence Link</label>
+                <input type="url" name="evidenceLink" class="form-control" placeholder="https://online-go.com/game/...">
+                <small style="color: var(--text-muted);">Provide an evidence link OR upload a screenshot below.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Evidence Screenshot (Optional)</label>
+                <input type="file" name="evidence_file" class="form-control" accept="image/*" style="padding-top: 6px;">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 16px;">Submit Match Record</button>
+        </form>
+    </div>
+
+    <div class="card glass">
+        <h3>Match Recording Rules</h3>
+        <ul class="status-list mt-4">
+            <li>
+                <span style="color: var(--text-muted);">1. Ensure you select the correct opponent. Fake results will be removed.</span>
+            </li>
+            <li>
+                <span style="color: var(--text-muted);">2. You must provide a valid link or picture of the game (e.g. from OGS, KGS, Fox).</span>
+            </li>
+            <li>
+                <span style="color: var(--text-muted);">3. Physical games must be entered manually with an SGF record, picture, or other relevant evidence.</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+async function fetchSharedTournaments(opponentId, currentUserId) {
+    const tSelect = document.getElementById('tournament_id');
+    tSelect.innerHTML = '<option value="none">-- Not a tournament match --</option>';
+    
+    if (!opponentId) {
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/shared_tournaments/${currentUserId}/${opponentId}`);
+        const tournaments = await res.json();
+        
+        if (tournaments.length > 0) {
+            tournaments.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.tournamentID;
+                opt.textContent = t.tournament_name;
+                tSelect.appendChild(opt);
+            });
+        }
+    } catch(err) {
+        console.error('Error fetching shared tournaments', err);
+    }
+}
+</script>
+{% endblock %}

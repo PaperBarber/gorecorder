@@ -1,0 +1,169 @@
+{% extends "app_layout.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="card glass">
+        <h3>Player Stats</h3>
+        {% if stats %}
+        <ul class="status-list mt-4">
+            <li>
+                <span class="status-label">Rank</span>
+                <span class="status-value" style="font-weight: bold; color: var(--primary);">{{ stats.rank }}</span>
+            </li>
+            <li>
+                <span class="status-label">Total Matches</span>
+                <span class="status-value">{{ stats.total_matches }}</span>
+            </li>
+            <li>
+                <span class="status-label">Wins</span>
+                <span class="status-value success">{{ stats.wins }}</span>
+            </li>
+            <li>
+                <span class="status-label">Losses</span>
+                <span class="status-value" style="color: var(--error);">{{ stats.losses }}</span>
+            </li>
+            <li>
+                <span class="status-label">Win Rate</span>
+                {% set wr = (stats.wins / stats.total_matches * 100) | round(1) if stats.total_matches > 0 else 0 %}
+                <span class="status-value">{{ wr }}%</span>
+            </li>
+        </ul>
+        {% else %}
+        <p class="mt-4" style="color: var(--text-muted);">No stats available.</p>
+        {% endif %}
+    </div>
+
+    <div class="card glass" style="grid-column: span 2;">
+        <h3>Recent Match History</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">Click a match row to view details.</p>
+        <div class="table-container mt-4">
+            <table class="data-table" id="matches-table">
+                <thead>
+                    <tr>
+                        <th>Match ID</th>
+                        <th>Opponent</th>
+                        <th>Played As</th>
+                        <th>Board Size</th>
+                        <th>Rule</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in matches %}
+                    <tr style="cursor: pointer;" onclick="openMatchModal('{{ m.matchID }}', '{{ m.opponent | replace('\'', '\\\'') }}', '{{ m.played_as }}', '{{ m.board_size }}', '{{ m.rule }}', '{{ m.result }}', '{{ m.komi }}', '{{ m.handicap }}', '{{ m.evidenceLink }}', '{{ m.tournament_name | replace('\'', '\\\'') }}')">
+                        <td>#{{ m.matchID }}</td>
+                        <td>{{ m.opponent }}</td>
+                        <td>
+                            {% if m.played_as == 'black' %}
+                            <span style="display:inline-block; width:12px; height:12px; background:#000; border-radius:50%; border:1px solid #fff; margin-right:4px;"></span> Black
+                            {% else %}
+                            <span style="display:inline-block; width:12px; height:12px; background:#fff; border-radius:50%; border:1px solid #999; margin-right:4px;"></span> White
+                            {% endif %}
+                        </td>
+                        <td>{{ m.board_size }}x{{ m.board_size }}</td>
+                        <td>{{ m.rule | capitalize }}</td>
+                        <td class="{% if m.result == 'Win' %}success{% else %}error{% endif %}">
+                            {{ m.result }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No matches recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Match Details Modal -->
+<div id="matchModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="card glass" style="width: 400px; padding: 32px; position: relative;">
+        <span onclick="closeMatchModal()" style="position: absolute; top: 16px; right: 24px; cursor: pointer; font-size: 1.5rem; color: var(--text-muted);">&times;</span>
+        <h3 id="modalTitle">Match Details</h3>
+        <ul class="status-list mt-4">
+            <li>
+                <span class="status-label">Opponent</span>
+                <span class="status-value" id="modalOpponent"></span>
+            </li>
+            <li>
+                <span class="status-label">Played As</span>
+                <span class="status-value" id="modalPlayedAs"></span>
+            </li>
+            <li id="liTournament" style="display: none;">
+                <span class="status-label">Tournament</span>
+                <span class="status-value" id="modalTournament" style="color: var(--accent);"></span>
+            </li>
+            <li>
+                <span class="status-label">Komi</span>
+                <span class="status-value" id="modalKomi"></span>
+            </li>
+            <li>
+                <span class="status-label">Handicap</span>
+                <span class="status-value" id="modalHandicap"></span>
+            </li>
+            <li>
+                <span class="status-label">Result</span>
+                <span class="status-value" id="modalResult"></span>
+            </li>
+        </ul>
+        <div class="mt-4" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <a id="modalEvidenceLink" href="#" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-block;">View Evidence</a>
+            <a id="modalEditLink" href="#" class="btn" style="background: rgba(255,255,255,0.1); color: white; text-decoration: none;">Edit Match</a>
+            <form id="modalDeleteForm" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('Are you sure you want to delete this match? This cannot be undone.');">
+                <button type="submit" class="btn" style="background: var(--error); color: white; border: none; cursor: pointer;">Delete Match</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openMatchModal(id, opponent, playedAs, size, rule, result, komi, handicap, evidenceLink, tournamentName) {
+        document.getElementById('modalTitle').textContent = `Match #${id}`;
+        document.getElementById('modalOpponent').textContent = opponent;
+        document.getElementById('modalPlayedAs').textContent = playedAs.charAt(0).toUpperCase() + playedAs.slice(1);
+        document.getElementById('modalKomi').textContent = komi;
+        document.getElementById('modalHandicap').textContent = handicap;
+        
+        const tourneyEl = document.getElementById('modalTournament');
+        if (tournamentName && tournamentName !== 'None' && tournamentName !== 'null') {
+            tourneyEl.textContent = tournamentName;
+            document.getElementById('liTournament').style.display = 'flex';
+        } else {
+            document.getElementById('liTournament').style.display = 'none';
+        }
+        
+        const resEl = document.getElementById('modalResult');
+        resEl.textContent = result;
+        resEl.className = result === 'Win' ? 'status-value success' : 'status-value error';
+        
+        const linkEl = document.getElementById('modalEvidenceLink');
+        if (evidenceLink && evidenceLink !== 'None' && evidenceLink !== 'null') {
+            linkEl.href = evidenceLink;
+            linkEl.style.display = 'inline-block';
+        } else {
+            linkEl.style.display = 'none';
+        }
+        
+        document.getElementById('modalEditLink').href = '/match/' + id + '/edit';
+        document.getElementById('modalDeleteForm').action = '/match/' + id + '/delete';
+        
+        document.getElementById('matchModal').style.display = 'flex';
+    }
+
+    function closeMatchModal() {
+        document.getElementById('matchModal').style.display = 'none';
+    }
+    
+    // Close modal if clicked outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('matchModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

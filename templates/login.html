@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block layout %}
+<div class="auth-container" style="display: flex; height: 100vh; align-items: center; justify-content: center; background-color: var(--bg-main);">
+    <div class="card glass" style="width: 100%; max-width: 400px; padding: 40px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div class="brand-icon" style="margin: 0 auto 16px auto; width: 48px; height: 48px;"></div>
+            <h2>Welcome Back</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">Log in to GoRecorder</p>
+        </div>
+        
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 16px;">Log In</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 24px;">
+            <span style="color: var(--text-muted);">Don't have an account?</span> 
+            <a href="/register" style="color: var(--primary); text-decoration: none;">Register</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
